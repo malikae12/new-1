@@ -5,7 +5,8 @@ import { readFileSync } from 'fs'; // Untuk membaca file JSON
 
 const config = JSON.parse(readFileSync(new URL('./config.json', import.meta.url), 'utf-8'));
 
-const privateKey = '0x_your_private_key'; // Pastikan formatnya benar
+// Pastikan format kunci privat benar
+const privateKey = '0x_your_private_key';
 const tokenContractAddress = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8'; // Alamat kontrak token Anda
 
 // Definisi ABI token
@@ -27,9 +28,11 @@ const recipient = '0xf64d3CeFdAe63560C8b1E1D0f134a54988F5260E';
 // Definisikan warna dengan chalk
 const orange = chalk.rgb(255, 165, 0);
 const green = chalk.green;
-const pink = chalk.hex('#FFC0CB'); // Warna pink
+const pink = chalk.hex('#FF1493'); // Warna pink
 const blue = chalk.blue;
 const red = chalk.red;
+const violet = chalk.hex('#8A2BE2'); 
+const cyan = chalk.hex('#00FFFF');
 
 // Setup readline untuk mendapatkan input pengguna
 const rl = readline.createInterface({
@@ -39,7 +42,7 @@ const rl = readline.createInterface({
 
 // Fungsi untuk meminta jumlah dan berapa kali mengirim token
 rl.question(orange('Masukkan jumlah token yang ingin dikirim (dalam USDC.e): '), (inputAmount) => {
-  rl.question(orange('Berapa kali Anda ingin mengirim token?: '), async (inputTimes) => {
+  rl.question(cyan('Berapa kali Anda ingin mengirim token?: '), async (inputTimes) => {
     const amount = ethers.parseUnits(inputAmount, 6); // Parse jumlah ke 6 desimal (untuk USDC.e)
     const times = BigInt(inputTimes); // Ubah jumlah kali ke BigInt
 
@@ -69,7 +72,7 @@ async function sendMultipleTokens(amount, times) {
 
       // Cetak hash transaksi dengan warna hijau
       console.log(green(`Hash transaksi ${i + 1}: ${txResponse.hash}`));
-      console.log(green(`Lacak transaksi di sini: ${txHashUrl}`));
+      console.log(violet(`Lacak transaksi di sini: ${txHashUrl}`));
 
       // Tunggu konfirmasi transaksi
       const receipt = await txResponse.wait();
