@@ -1,7 +1,7 @@
 {
-  "name": "auto-transfer-ERC-20",
+  "name": "auto-transfer-erc20",
   "version": "1.0.0",
-  "description": "Auto transfer all ERC-20",
+  "description": "AUTO TRANSFER ERC-20",
   "main": "index.js",
   "type": "module",
   "scripts": {
