@@ -1,91 +1,112 @@
 import { ethers } from 'ethers';
-import readline from 'readline'; // To get user input from the terminal
-import chalk from 'chalk'; // To add color to terminal output
-import config from './config.json' assert { type: 'json' }; // Ensure config.json exists and contains rpcUrl
+import readline from 'readline'; // Untuk mendapatkan input pengguna dari terminal
+import chalk from 'chalk'; // Untuk menambahkan warna pada output terminal
+import { readFileSync } from 'fs'; // Untuk membaca file JSON
 
-const privateKey = '0x_your_private_key'; //must use 0x
-const tokenContractAddress = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8'; //your received address
+const config = JSON.parse(readFileSync(new URL('./config.json', import.meta.url), 'utf-8'));
 
-// Token ABI definition
+const privateKey = '0x_your_private_key'; // Pastikan formatnya benar
+const tokenContractAddress = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8'; // Alamat kontrak token Anda
+
+// Definisi ABI token
 const tokenAbi = [
   "function transfer(address to, uint amount) public returns (bool)",
   "function balanceOf(address account) public view returns (uint)"
 ];
 
-// Create provider and wallet
+// Buat provider dan wallet
 const provider = new ethers.JsonRpcProvider(config.rpcUrl);
 const wallet = new ethers.Wallet(privateKey, provider);
 
-// Create contract instance
+// Buat instance kontrak
 const tokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, wallet);
 
-// Define recipient address
+// Definisikan alamat penerima
 const recipient = '0xf64d3CeFdAe63560C8b1E1D0f134a54988F5260E';
 
-// Define a custom orange color using RGB values
+// Definisikan warna dengan chalk
 const orange = chalk.rgb(255, 165, 0);
+const green = chalk.green;
+const pink = chalk.hex('#FFC0CB'); // Warna pink
+const blue = chalk.blue;
+const red = chalk.red;
 
-// Setup readline to get user input
+// Setup readline untuk mendapatkan input pengguna
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-// Function to prompt for both the amount and number of times to send the tokens
-rl.question(orange('Enter the amount of tokens to send (in USDC.e): '), (inputAmount) => {
-  rl.question(orange('How many times do you want to send the tokens?: '), async (inputTimes) => {
-    const amount = ethers.parseUnits(inputAmount, 6); // Parse the amount to 6 decimals (for USDC.e)
-    const times = BigInt(inputTimes); // Convert the number of times to BigInt
+// Fungsi untuk meminta jumlah dan berapa kali mengirim token
+rl.question(orange('Masukkan jumlah token yang ingin dikirim (dalam USDC.e): '), (inputAmount) => {
+  rl.question(orange('Berapa kali Anda ingin mengirim token?: '), async (inputTimes) => {
+    const amount = ethers.parseUnits(inputAmount, 6); // Parse jumlah ke 6 desimal (untuk USDC.e)
+    const times = BigInt(inputTimes); // Ubah jumlah kali ke BigInt
 
-    // Check balance and send tokens multiple times
+    // Periksa saldo dan kirim token beberapa kali
     await checkBalance();
     await sendMultipleTokens(amount, times);
-    
-    rl.close(); // Close the readline interface when done
+
+    rl.close(); // Tutup antarmuka readline setelah selesai
   });
 });
 
-// Function to send tokens multiple times
+// Fungsi untuk mengirim token beberapa kali
 async function sendMultipleTokens(amount, times) {
   try {
-    // Retrieve balance before sending
+    // Ambil saldo sebelum mengirim
     const balance = await tokenContract.balanceOf(wallet.address);
 
-    // Check if balance is sufficient
-    if (balance < (amount * times)) {  // Use BigInt for multiplication
-      throw new Error('Insufficient balance to send the tokens multiple times.');
+    // Periksa apakah saldo cukup
+    if (balance < (amount * times)) { // Gunakan BigInt untuk perkalian
+      throw new Error('Saldo tidak mencukupi untuk mengirim token beberapa kali.');
     }
 
     for (let i = 0; i < times; i++) {
-      // Transfer the tokens
+      // Transfer token
       const txResponse = await tokenContract.transfer(recipient, amount);
-      const txHashUrl = `https://arbiscan.io/tx/${txResponse.hash}`; // Arbiscan URL for the transaction
-      
-      // Print the hash in green
-      console.log(chalk.green(`Transaction ${i + 1} hash: ${txResponse.hash}`));
-      console.log(chalk.green(`Track the transaction here: ${txHashUrl}`));
+      const txHashUrl = `https://arbiscan.io/tx/${txResponse.hash}`; // URL Arbiscan untuk transaksi
 
-      // Wait for the transaction to be confirmed
+      // Cetak hash transaksi dengan warna hijau
+      console.log(green(`Hash transaksi ${i + 1}: ${txResponse.hash}`));
+      console.log(green(`Lacak transaksi di sini: ${txHashUrl}`));
+
+      // Tunggu konfirmasi transaksi
       const receipt = await txResponse.wait();
-      console.log(chalk.green(`Transaction ${i + 1} confirmed in block ${receipt.blockNumber}`));
+      console.log(green(`Transaksi ${i + 1} dikonfirmasi di blok ${receipt.blockNumber}`));
 
-      // Print the congratulatory message in green
-      console.log(chalk.bgGreenBright(`YOUR TRANSACTION ALREADY DONE CONGRATS`));
+      // Cetak pesan ucapan selamat dengan warna hijau
+      console.log(chalk.bgGreenBright(`TRANSAKSI ANDA SUDAH SELESAI SELAMAT`));
     }
+
+    // Periksa saldo setelah semua transaksi selesai
+    await checkBalanceAfterTransactions();
   } catch (error) {
-    // Print the error in red
-    console.error(chalk.red('Error sending tokens:', error));
+    // Cetak kesalahan dengan warna merah
+    console.error(red('Kesalahan mengirim token:', error));
   }
 }
 
-// Function to check balance
+// Fungsi untuk memeriksa saldo setelah transaksi selesai
+async function checkBalanceAfterTransactions() {
+  try {
+    const balance = await tokenContract.balanceOf(wallet.address);
+    // Cetak saldo dengan warna pink
+    console.log(pink(`Saldo Setelah Transaksi: ${ethers.formatUnits(balance, 6)} USDC.e`)); // 6 desimal untuk USDC.e
+  } catch (error) {
+    // Cetak kesalahan dengan warna merah jika pemeriksaan saldo gagal
+    console.error(red('Kesalahan memeriksa saldo:', error));
+  }
+}
+
+// Fungsi untuk memeriksa saldo sebelum transaksi
 async function checkBalance() {
   try {
     const balance = await tokenContract.balanceOf(wallet.address);
-    // Print the balance in blue
-    console.log(chalk.blue(`Current Balance: ${ethers.formatUnits(balance, 6)} USDC.e`)); // 6 decimals for USDC.e
+    // Cetak saldo dengan warna biru
+    console.log(blue(`Saldo Saat Ini: ${ethers.formatUnits(balance, 6)} USDC.e`)); // 6 desimal untuk USDC.e
   } catch (error) {
-    // Print the error in red if balance check fails
-    console.error(chalk.red('Error checking balance:', error));
+    // Cetak kesalahan dengan warna merah jika pemeriksaan saldo gagal
+    console.error(red('Kesalahan memeriksa saldo:', error));
   }
 }
