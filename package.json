@@ -1,7 +1,7 @@
 {
-  "name": "auto-transfer",
+  "name": "auto-transfer-ERC-20",
   "version": "1.0.0",
-  "description": "A bot for automatic token transfers on EVM-compatible networks",
+  "description": "Auto transfer all ERC-20",
   "main": "index.js",
   "type": "module",
   "scripts": {
