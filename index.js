@@ -70,7 +70,7 @@ async function sendMultipleTokens(amount, times) {
       console.log(chalk.green(`Transaction ${i + 1} confirmed in block ${receipt.blockNumber}`));
 
       // Print the congratulatory message in green
-      console.log(chalk.green(`YOUR TRANSACTION ALREADY DONE CONGRATS`));
+      console.log(chalk.bgGreenBright(`YOUR TRANSACTION ALREADY DONE CONGRATS`));
     }
   } catch (error) {
     // Print the error in red
